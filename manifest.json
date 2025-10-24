@@ -1,16 +1,21 @@
 {
-  "name": "Elixier Tracker",
-  "short_name": "Elixier",
-  "start_url": "./elixircounter/",
+  "name": "Elixir Tracker",
+  "short_name": "Elixir",
+  "description": "Clash Royale Elixier-Tracker",
+  "start_url": "/elixircounter/",
   "display": "standalone",
-  "background_color": "#f5f5f5",
-  "theme_color": "#4CAF50",
+  "background_color": "#ffffff",
+  "theme_color": "#00bfff",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "icon.jpg",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/jpeg"
+    },
+    {
+      "src": "icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
     }
   ]
-
 }
