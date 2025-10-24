@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clash Royale Elixier Tracker</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background:#f5f5f5; }
+    #elixirBar { width: 100%; background: #ddd; height: 30px; border-radius: 5px; margin: 10px 0; position: relative; }
+    #elixirFill { height: 100%; width: 50%; background: #4CAF50; border-radius: 5px; transition: width 0.1s; }
+    button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+    #timeline { max-height: 200px; overflow-y: auto; text-align: left; background: #fff; padding: 10px; border: 1px solid #ccc; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Elixier Tracker</h1>
+<div>Aktuelles Gegner-Elixier: <span id="elixirDisplay">5.00</span></div>
+<div id="elixirBar"><div id="elixirFill"></div></div>
+
+<div>
+    <button onclick="playCard(1)">1 Elixier</button>
+    <button onclick="playCard(2)">2 Elixier</button>
+    <button onclick="playCard(3)">3 Elixier</button>
+    <button onclick="playCard(4)">4 Elixier</button>
+    <button onclick="playCard(5)">5 Elixier</button>
+    <button onclick="playCard(6)">6 Elixier</button>
+    <button onclick="playCard(7)">7 Elixier</button>
+    <button onclick="playCard(8)">8 Elixier</button>
+    <button onclick="playCard(9)">9 Elixier</button>
+</div>
+
+<button id="doubleBtn" onclick="toggleDoubleElixir(this)">Double Elixir: Aus</button>
+<button onclick="resetElixir()">Reset</button>
+
+<h3>Timeline</h3>
+<div id="timeline"></div>
+
+<script>
+let elixir = 5.0;
+const maxElixir = 10.0;
+let regenRate = 1 / 2.8;
+let doubleElixir = false;
+const timeline = document.getElementById("timeline");
+
+let matchStartTime = null;
+let autoDoubleTime = 60; // Sekunden bis Double Elixir automatisch startet (standardmäßig 60s)
+let autoTimerRunning = false;
+
+function updateUI() {
+    document.getElementById("elixirDisplay").innerText = elixir.toFixed(2);
+    document.getElementById("elixirFill").style.width = (elixir/maxElixir*100) + "%";
+    if(elixir >= maxElixir) {
+        document.getElementById("elixirFill").style.background = "#FF0000";
+    } else {
+        document.getElementById("elixirFill").style.background = "#4CAF50";
+    }
+}
+
+function playCard(cost) {
+    elixir -= cost;
+    if(elixir < 0) elixir = 0;
+    timeline.innerHTML += `<div>[${getMatchTime()}s] Gegner spielt Karte: ${cost} Elixier</div>`;
+    timeline.scrollTop = timeline.scrollHeight;
+    updateUI();
+}
+
+function toggleDoubleElixir(btn) {
+    doubleElixir = !doubleElixir;
+    regenRate = doubleElixir ? 1 / 1.4 : 1 / 2.8;
+    btn.innerText = "Double Elixir: " + (doubleElixir ? "Ein" : "Aus");
+    timeline.innerHTML += `<div><b>Double Elixir ${doubleElixir ? "aktiviert" : "deaktiviert"}</b></div>`;
+}
+
+function resetElixir() {
+    elixir = 5.0;
+    doubleElixir = false;
+    regenRate = 1 / 2.8;
+    document.getElementById("doubleBtn").innerText = "Double Elixir: Aus";
+    timeline.innerHTML = '';
+    matchStartTime = Date.now();
+    autoTimerRunning = true;
+    updateUI();
+}
+
+// Startet automatisch Double Elixir nach bestimmter Zeit
+setInterval(() => {
+    if(autoTimerRunning && matchStartTime){
+        const elapsed = (Date.now() - matchStartTime) / 1000;
+        if(!doubleElixir && elapsed >= autoDoubleTime){
+            doubleElixir = true;
+            regenRate = 1 / 1.4;
+            document.getElementById("doubleBtn").innerText = "Double Elixir: Ein";
+            timeline.innerHTML += `<div><b>[${getMatchTime()}s] Double Elixir automatisch aktiviert!</b></div>`;
+        }
+    }
+}, 500);
+
+function getMatchTime(){
+    if(!matchStartTime) return 0;
+    return Math.floor((Date.now() - matchStartTime) / 1000);
+}
+
+// Elixier-Update
+setInterval(() => {
+    elixir += regenRate * 0.1;
+    if(elixir > maxElixir) elixir = maxElixir;
+    updateUI();
+}, 100);
+
+// Service Worker Registrierung
+if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').then(() => {
+        console.log("Service Worker registriert!");
+    });
+}
+
+// Beim Start direkt Timer aktivieren
+resetElixir();
+</script>
+</body>
+</html>
